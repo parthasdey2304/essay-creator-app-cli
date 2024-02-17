@@ -14,7 +14,7 @@ def plagiarism_check(text):
     }
     headers = {
         "content-type": "application/json",
-        "X-RapidAPI-Key": "ADD_YOUR_API_KEY_HERE",
+        "X-RapidAPI-Key": "ADD_YOUR_OWN_API_KEY",
         "X-RapidAPI-Host": "plagiarism-checker-and-auto-citation-generator-multi-lingual.p.rapidapi.com"
     }
 
@@ -23,23 +23,22 @@ def plagiarism_check(text):
 
     return (response_json["percentPlagiarism"])
 
-# def paraphrase_v1(text):
-#     url = "https://paraphrasing-api2.p.rapidapi.com/long-rewriter"
+def paraphrase_v1(text):
+    url = "https://paraphrase-genius.p.rapidapi.com/dev/paraphrase/"
 
-#     querystring = {
-#         "text":text,
-#         "unique":"1",
-#         "mode":"fluent"
-#         }
+    payload = {
+        "text": text,
+        "result_type": "multiple"
+    }
+    headers = {
+        "content-type": "application/json",
+        "X-RapidAPI-Key": "ADD_YOUR_OWN_API_KEY",
+        "X-RapidAPI-Host": "paraphrase-genius.p.rapidapi.com"
+    }
 
-#     headers = {
-#         "X-RapidAPI-Key": "c6150aa0fbmshc0a1461851bd7ecp100c48jsnac068272b7e6",
-#         "X-RapidAPI-Host": "paraphrasing-api2.p.rapidapi.com"
-#     }
+    response = requests.post(url, json=payload, headers=headers)
 
-#     response = requests.post(url, headers=headers, params=querystring)
-
-#     return (response.json())
+    return response.json()
 
 # # this method takes the AI generated text and then paraphrases the text into a more humanly format
 # def paraphrase_v2(text):
@@ -54,7 +53,8 @@ def plagiarism_check(text):
 #     return (generated_sentence)[0]
 
 # this method takes the topic for the essay as input along with the word limit and returns the AI generated essay
-def essay_generator(topic, word_count, prefix = "you are an expert in english language and now you will write an essay on the topic : "):
+
+def essay_generator(topic, word_count):
     url = "https://chatgpt-best-price.p.rapidapi.com/v1/chat/completions"
 
     payload = {
@@ -62,13 +62,13 @@ def essay_generator(topic, word_count, prefix = "you are an expert in english la
         "messages": [
             {
                 "role": "user",
-            "content": prefix + " " + topic + " in " + word_count + " words"
+            "content": "you are good in english language and now you will write an essay on the topic : " + topic + " in " + word_count + " words and make sure there a little bit grammatical mistakes in between just a little bit" 
             }
         ]
     }
     headers = {
         "content-type": "application/json",
-        "X-RapidAPI-Key": "ADD_YOUR_API_KEY",
+        "X-RapidAPI-Key": "ADD_YOUR_OWN_API_KEY",
         "X-RapidAPI-Host": "chatgpt-best-price.p.rapidapi.com"
     }
 
@@ -79,11 +79,18 @@ def essay_generator(topic, word_count, prefix = "you are an expert in english la
 
 essay_topic = input("Enter the topic of your essay : ")
 word_count = input("Enter the word count of your essay : ")
-content = essay_generator(essay_topic, word_count)
-confidence_score = plagiarism_check(content)
+print("Generating your essay...")
+content = essay_generator(essay_topic, word_count) # generating essay with AI
+confidence_score = plagiarism_check(content) # plagiarism checker generates a confidence score the less the score the better
+rephrased_content_list = paraphrase_v1(content) # array of paraphrased content with 4 items
+i = 0
 
-while confidence_score != 0:
-    content = essay_generator(essay_topic, word_count, "Please paraphrase this entire essay without changing the meaning")
-    confidence_score = plagiarism_check(content)
+print("Paraphrased content : \n")
+
+while confidence_score != 0 or i == 4:
+    # content = essay_generator(essay_topic, word_count, "Please paraphrase this entire essay without changing the meaning")
+    content = rephrased_content_list[i]
+    confidence_score = plagiarism_check(rephrased_content_list[i])
+    i = i + 1
 
 print(content)
